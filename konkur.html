@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roblox Конкурсы</title>
+    <style>
+        /* Стили для сайта */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #45a049;
+        }
+        .contest-list {
+            margin-top: 20px;
+        }
+        .contest-item {
+            background-color: #f9f9f9;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .admin-controls {
+            margin-top: 20px;
+            display: none;
+        }
+        .founder-btn {
+            margin-top: 20px;
+            text-align: center;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .admin-login {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .add-contest-btn {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Кнопка для основателя -->
+    <div class="founder-btn">
+        <button class="btn" onclick="window.location.href='https://www.roblox.com/users/2898037633/profile'">Основатель</button>
+    </div>
+
+    <h1>Roblox Конкурсы</h1>
+    <div class="container">
+        <!-- Форма добавления конкурса (будет скрыта для обычных пользователей) -->
+        <div class="add-contest-btn">
+            <div>
+                <label for="contest-text">Описание конкурса:</label><br>
+                <textarea id="contest-text" rows="3" placeholder="Введите описание конкурса" style="width: 100%;"></textarea>
+            </div>
+            <div>
+                <label for="contest-date">Дата проведения конкурса:</label><br>
+                <input type="date" id="contest-date" />
+            </div>
+            <button class="btn" onclick="addContest()">Добавить конкурс</button>
+        </div>
+
+        <h2>Список конкурсов</h2>
+        <div class="contest-list" id="contest-list">
+            <p>Пока нет добавленных конкурсов.</p>
+        </div>
+
+        <!-- Административные действия -->
+        <div class="admin-login">
+            <label for="admin-code">Введите код администратора:</label><br>
+            <input type="password" id="admin-code" placeholder="Введите код админа" />
+            <button class="btn" onclick="verifyAdmin()">Войти как админ</button>
+        </div>
+
+        <div class="admin-controls">
+            <h3>Административные действия</h3>
+            <div id="admin-actions">
+                <p>Вы вошли как администратор. Теперь вы можете добавлять и удалять конкурсы.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Функция для загрузки конкурсов из localStorage
+        function loadContests() {
+            const contests = JSON.parse(localStorage.getItem('contests')) || [];
+            const contestListElement = document.getElementById('contest-list');
+            
+            contestListElement.innerHTML = '';  // Очистить список конкурсов
+
+            if (contests.length === 0) {
+                contestListElement.innerHTML = `<p>Нет добавленных конкурсов.</p>`;
+            } else {
+                contests.forEach((contest, index) => {
+                    const contestItem = document.createElement('div');
+                    contestItem.classList.add('contest-item');
+                    contestItem.innerHTML = `
+                        Конкурс: ${contest.text} | Дата: ${contest.date} 
+                        <button class="btn" onclick="removeContest(${index})">Удалить</button>
+                    `;
+                    contestListElement.appendChild(contestItem);
+                });
+            }
+        }
+
+        // Функция для добавления конкурса
+        function addContest() {
+            const contestText = document.getElementById('contest-text').value.trim();
+            const contestDate = document.getElementById('contest-date').value;
+
+            if (!contestText || !contestDate) {
+                alert('Пожалуйста, заполните все поля!');
+                return;
+            }
+
+            // Получить текущие конкурсы из localStorage
+            const contests = JSON.parse(localStorage.getItem('contests')) || [];
+
+            // Добавить новый конкурс
+            contests.push({ text: contestText, date: contestDate });
+
+            // Сохранить обновленный список конкурсов в localStorage
+            localStorage.setItem('contests', JSON.stringify(contests));
+
+            // Очистить поля ввода и обновить список конкурсов
+            document.getElementById('contest-text').value = '';
+            document.getElementById('contest-date').value = '';
+            loadContests();
+        }
+
+        // Функция для удаления конкурса
+        function removeContest(index) {
+            const contests = JSON.parse(localStorage.getItem('contests')) || [];
+            contests.splice(index, 1); // Удалить конкурс по индексу
+
+            // Сохранить обновленный список конкурсов в localStorage
+            localStorage.setItem('contests', JSON.stringify(contests));
+
+            loadContests();
+        }
+
+        // Функция для проверки кода администратора
+        function verifyAdmin() {
+            const adminCode = document.getElementById('admin-code').value;
+            if (adminCode === '345') {
+                alert('Вы вошли как администратор');
+                document.querySelector('.admin-controls').style.display = 'block';
+                document.querySelector('.add-contest-btn').style.display = 'block'; // Показываем кнопку добавления конкурса для админа
+                loadContests();
+            } else {
+                alert('Неверный код администратора!');
+            }
+        }
+
+        // Инициализация страницы
+        loadContests();
+    </script>
+</body>
+</html>
